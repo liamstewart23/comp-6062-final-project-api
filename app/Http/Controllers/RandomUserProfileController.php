@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -11,19 +12,21 @@ class RandomUserProfileController extends Controller
     /**
      * Return data for a random user profile
      *
-     * @param Request $request
+     * @param  Request  $request
+     *
      * @return JsonResponse
+     * @throws ConnectionException
      */
     public function index(Request $request): JsonResponse
     {
-        $response = Http::get('https://randomuser.me/api/');
-        if (! $response->successful()) {
+        try {
+            $response = Http::get('https://randomuser.me/api/');
+            $data = $response->json();
+        } catch (ConnectionException $e) {
             return response()->json([
-                'message' => 'Server error',
+                'message' => 'Server error: ' . $e->getMessage(),
             ], 500);
         }
-
-        $data = $response->json();
 
         $profile = [
             'first_name' => $data['results'][0]['name']['first'] ?? '',
