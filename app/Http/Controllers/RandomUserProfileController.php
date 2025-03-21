@@ -15,7 +15,6 @@ class RandomUserProfileController extends Controller
      * @param  Request  $request
      *
      * @return JsonResponse
-     * @throws ConnectionException
      */
     public function index(Request $request): JsonResponse
     {
