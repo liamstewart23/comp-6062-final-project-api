@@ -12,7 +12,7 @@ class RandomUserProfileController extends Controller
     /**
      * Return data for a random user profile
      *
-     * @param  Request  $request
+     * @param Request $request
      *
      * @return JsonResponse
      */
