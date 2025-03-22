@@ -41,14 +41,10 @@ class DefineWordController extends Controller
             ], 500);
         }
 
-        $word = [
+        return response()->json([
             'word' => $wordData[0]['word'] ?? '',
-            'definition' => $wordData[0]['definition'] ?? '',
-            'part_of_speech' => $wordData[0]['partOfSpeech'] ?? '',
-            'synonyms' => $wordData[0]['synonyms'] ?? '',
-            'antonyms' => $wordData[0]['antonyms'] ?? '',
-        ];
-
-        return response()->json($word);
+            'phonetic' => $wordData[0]['phonetic'] ?? '',
+            'definition' => $wordData[0]['meanings'][0]['definitions'][0]['definition'] ?? ''
+        ]);
     }
 }

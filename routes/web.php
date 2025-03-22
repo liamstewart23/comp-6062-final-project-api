@@ -13,4 +13,4 @@ Route::get('/weather-information', [WeatherController::class, 'index']);
 
 Route::get('/random-user-profile', [RandomUserProfileController::class, 'index']);
 
-//Route::get('/define', [DefineWordController::class, 'index']);
+Route::get('/define', [DefineWordController::class, 'index']);
