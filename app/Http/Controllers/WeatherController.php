@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class WeatherController extends Controller
@@ -37,19 +36,16 @@ class WeatherController extends Controller
         }
 
         $query = trim("{$request->input('city')} {$request->input('province')} {$request->input('country')}");
-        $cacheKey = "weather_data_{$query}";
 
         try {
-            $weatherData = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($query) {
-                $response = Http::get("https://wttr.in/{$query}?format=j1");
-                if (! $response->successful()) {
-                    return response()->json([
-                        'message' => 'Server error',
-                    ], 500);
-                }
+            $response = Http::get("https://wttr.in/{$query}?format=j1");
+            if (! $response->successful()) {
+                return response()->json([
+                    'message' => 'Server error',
+                ], 500);
+            }
 
-                return $response->json();
-            });
+            $weatherData =  $response->json();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Server error: ' . $e->getMessage(),
