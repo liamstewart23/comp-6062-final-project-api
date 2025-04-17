@@ -25,6 +25,13 @@ class DefineWordController extends Controller
         try {
             $response = Http::get("https://api.dictionaryapi.dev/api/v2/entries/en/{$query}");
             if (! $response->successful()) {
+
+                if ($response->json()['title'] === 'No Definitions Found') {
+                    return response()->json([
+                        'message' => 'Word not found',
+                    ], 422);
+                }
+
                 return response()->json([
                     'message' => 'Server error',
                 ], 500);
