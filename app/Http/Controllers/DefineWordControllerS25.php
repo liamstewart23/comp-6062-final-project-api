@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class DefineWordControllerS25 extends Controller
@@ -22,26 +24,31 @@ class DefineWordControllerS25 extends Controller
         }
 
         $query = $request->input('word');
-        try {
-            $response = Http::get("https://api.dictionaryapi.dev/api/v2/entries/en/{$query}");
-            if (! $response->successful()) {
+        $cacheKey = 'dictionary_' . strtolower($query);
 
-                if ($response->json()['title'] === 'No Definitions Found') {
-                    return response()->json([
-                        'message' => 'Word not found',
-                    ], 422);
+        try {
+            $wordData = Cache::remember($cacheKey, now()->addHours(12), function () use ($query) {
+                $response = Http::get("https://api.dictionaryapi.dev/api/v2/entries/en/{$query}");
+
+                if (! $response->successful()) {
+                    $json = $response->json();
+
+                    if (isset($json['title']) && $json['title'] === 'No Definitions Found') {
+                        throw new Exception('Word not found', 422);
+                    }
+
+                    throw new Exception('Failed to fetch definition', 500);
                 }
 
-                return response()->json([
-                    'message' => 'Server error',
-                ], 500);
-            }
-
-            $wordData = $response->json();
+                return $response->json();
+            });
         } catch (\Exception $e) {
+            $status = $e->getCode() === 422 ? 422 : 500;
+            $message = $e->getCode() === 422 ? 'Word not found' : 'Server error: ' . $e->getMessage();
+
             return response()->json([
-                'message' => 'Server error: ' . $e->getMessage(),
-            ], 500);
+                'message' => $message,
+            ], $status);
         }
 
         return response()->json([
@@ -60,26 +67,31 @@ class DefineWordControllerS25 extends Controller
         }
 
         $query = $request->input('word');
-        try {
-            $response = Http::get("https://api.dictionaryapi.dev/api/v2/entries/en/{$query}");
-            if (! $response->successful()) {
+        $cacheKey = 'dictionary_trap_' . strtolower($query);
 
-                if ($response->json()['title'] === 'No Definitions Found') {
-                    return response()->json([
-                        'message' => 'Word not found',
-                    ], 422);
+        try {
+            $wordData = Cache::remember($cacheKey, now()->addHours(12), function () use ($query) {
+                $response = Http::get("https://api.dictionaryapi.dev/api/v2/entries/en/{$query}");
+
+                if (! $response->successful()) {
+                    $json = $response->json();
+
+                    if (isset($json['title']) && $json['title'] === 'No Definitions Found') {
+                        throw new Exception('Word not found', 422);
+                    }
+
+                    throw new Exception('Failed to fetch definition', 500);
                 }
 
-                return response()->json([
-                    'message' => 'Server error',
-                ], 500);
-            }
-
-            $wordData = $response->json();
+                return $response->json();
+            });
         } catch (\Exception $e) {
+            $status = $e->getCode() === 422 ? 422 : 500;
+            $message = $e->getCode() === 422 ? 'Word not found' : 'Server error: ' . $e->getMessage();
+
             return response()->json([
-                'message' => 'Server error: ' . $e->getMessage(),
-            ], 500);
+                'message' => $message,
+            ], $status);
         }
 
         return response()->json([

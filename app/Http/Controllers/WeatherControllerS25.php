@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class WeatherControllerS25 extends Controller
@@ -36,16 +38,18 @@ class WeatherControllerS25 extends Controller
         }
 
         $query = trim("{$request->input('city')} {$request->input('province')} {$request->input('country')}");
+        $cacheKey = 'weather_' . md5($query);
 
         try {
-            $response = Http::get("https://wttr.in/{$query}?format=j1");
-            if (! $response->successful()) {
-                return response()->json([
-                    'message' => 'Server error',
-                ], 500);
-            }
+            $weatherData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($query) {
+                $response = Http::get("https://wttr.in/{$query}?format=j1");
 
-            $weatherData =  $response->json();
+                if (! $response->successful()) {
+                    throw new Exception('Failed to fetch weather data');
+                }
+
+                return $response->json();
+            });
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Server error: ' . $e->getMessage(),
@@ -60,7 +64,7 @@ class WeatherControllerS25 extends Controller
         }
 
         return response()->json([
-            0 => [
+            'weather_data' => [
                 'temperature' => $weatherData['current_condition'][0]['temp_C'] . ' °C',
                 'wind_speed' => $weatherData['current_condition'][0]['windspeedKmph'] . ' km/h',
                 'weather_description' => $weatherData['current_condition'][0]['weatherDesc'][0]['value'],
@@ -86,20 +90,21 @@ class WeatherControllerS25 extends Controller
      */
     public function weatherTrap(Request $request): JsonResponse
     {
-        $query = trim("London Ontario Canada");
-
+        $query = trim("{$request->input('city')} {$request->input('province')} {$request->input('country')}");
+        $cacheKey = 'weather_trap_' . md5($query);
         try {
-            $response = Http::get("https://wttr.in/{$query}?format=j1");
-            if ( ! $response->successful()) {
-                return response()->json([
-                    'message' => 'Server error',
-                ], 500);
-            }
+            $weatherData = Cache::remember($cacheKey, now()->addMinutes(15), function () use ($query) {
+                $response = Http::get("https://wttr.in/{$query}?format=j1");
 
-            $weatherData = $response->json();
+                if (! $response->successful()) {
+                    throw new Exception('Failed to fetch weather data');
+                }
+
+                return $response->json();
+            });
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Server error: '.$e->getMessage(),
+                'message' => 'Server error: ' . $e->getMessage(),
             ], 500);
         }
 
